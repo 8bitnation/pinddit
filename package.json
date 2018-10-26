@@ -1,0 +1,8 @@
+{
+    "name": "pinddit",
+    "version": "1.0.0",
+    "description": "Cross-post/autopost pinned messages from Discord to Reddit",
+    "main": "bot.py",
+    "author": "8-bit Nation",
+    "dependencies": {}
+}
