@@ -28,6 +28,10 @@ async def on_message(message):
     if "!pins" in message.content.lower():
         myGuild = client.get_guild(GUILD_ID)
         for textChannel in myGuild.text_channels:
-            await message.channel.send(await textChannel.pins())
+            await message.channel.send('#'+ textChannel.name)
+            for pin in await textChannel.pins():
+                await message.channel.send(pin)
+                if pin.clean_content:
+                    await message.channel.send(pin.clean_content)
 
 client.run(TOKEN)
