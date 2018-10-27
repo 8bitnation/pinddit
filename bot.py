@@ -35,5 +35,7 @@ async def on_message(message):
                     await message.channel.send('content: ```' + pin.content + '```')
                 if pin.clean_content:
                     await message.channel.send('clean_content: ```' + pin.clean_content + '```')
+                for embed in pin.embeds:
+                    await message.channel.send('embed: ```' + str(embed.to_dict()) + '```')
 
 client.run(TOKEN)
