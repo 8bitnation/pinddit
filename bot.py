@@ -11,7 +11,7 @@ text_channel_list = []
 # vars for Reddit
 pinid = ""
 author = ""
-content = ""
+title = ""
 clean_content = ""
 embed_url = ""
 embed_title = ""
@@ -50,20 +50,17 @@ async def on_message(message):
                 # embed title (could be None)
                 # embed URL (could be None)
                 # embed type (could be None)
+                
+                # Get Pin ID
                 pinid = pin.id
                 await message.channel.send('pin: ```' + str(pin.id) + '```')
+
+                # Get the author details
                 if pin.author:
                     author = pin.author
                     await message.channel.send("author = " + str(author))
-                if pin.content:
-                    content = pin.content
-                    await message.channel.send("content = " + str(content))
-                if pin.jump_url:
-                    jump_url = pin.jump_url
-                    await message.channel.send("jump_url = " + str(jump_url))
-                if hasattr(pin, "attachments") and len(pin.attachments) > 0:
-                    for attachment in pin.attachments:
-                        await message.channel.send("Attachment = " + str(attachment.url))
+
+                # Get embeds from within the Pin
                 if hasattr(pin, "embeds") and len(pin.embeds) > 0:
                     try:
                         for embed in pin.embeds:
@@ -76,11 +73,24 @@ async def on_message(message):
                             if hasattr(embed, "type"):
                                 embed_type = embed.type
                                 await message.channel.send("Embedded type = " + str(embed_type))
+                                #if str(embed_type).lower()=="video":
+                                reddit.subreddit(sub_reddit).submit(embed_title+" (via "+str(author)+")", selftext="{}".format(embed_url))
+                                print("Submitted pin with ID = ", pinid, " to Reddit")
                     except:
                         AttributeError
+                else:
+                    if pin.content:
+                        title = pin.content
+                        await message.channel.send("Title = " + str(title))
+                    if pin.jump_url:
+                        jump_url = pin.jump_url
+                        await message.channel.send("jump_url = " + str(jump_url))
+                    if hasattr(pin, "attachments") and len(pin.attachments) > 0:
+                        for attachment in pin.attachments:
+                            await message.channel.send("Attachment = " + str(attachment.url))
+                            # Post each pin to Reddit
+                            reddit.subreddit(sub_reddit).submit(title+" (via "+str(author)+")", selftext="{}".format(attachment.url))
+                            print("Submitted pin with ID = ", pinid, " to Reddit")
 
-                # Post each pin to Reddit
-                reddit.subreddit(sub_reddit).submit(str(content)+"{}".format(" "+str(author)), selftext="Discord deep link: {}".format(jump_url))
-                print("Submitted pin with ID = ", pinid, " to Reddit")
 
 client.run(TOKEN)
