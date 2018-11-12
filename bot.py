@@ -8,6 +8,16 @@ client = discord.Client()
 
 text_channel_list = []
 
+# vars for Reddit
+pinid = ""
+author = ""
+content = ""
+clean_content = ""
+embed_url = ""
+embed_title = ""
+embed_type = ""
+jump_url = ""
+
 @client.event
 async def on_ready():
     print(f"Logged in to Discord as {client.user}\n")
@@ -18,6 +28,7 @@ async def on_message(message):
         f"#{message.channel}|{message.author.name}({message.author}):{message.content}"
     )
     
+    # get a listing of channels in the server
     if "!channels" in message.content.lower():
         channel_generator = client.get_all_channels()
         for channel in channel_generator:
@@ -25,20 +36,51 @@ async def on_message(message):
                 text_channel_list.append(channel.name)
         await message.channel.send(text_channel_list)
 
+    # use the keyword 'pins' to get pinned content
     if "!pins" in message.content.lower():
         myGuild = client.get_guild(GUILD_ID)
         for textChannel in myGuild.text_channels:
             await message.channel.send('#'+ textChannel.name)
             for pin in await textChannel.pins():
-                await message.channel.send('pin: ```' + str(pin) + '```')
+
+                # Pin ID (never None)
+                # content (never None)
+                # jump_url into Discord (never None)
+                # Attachments, if any (could be None)
+                # embed title (could be None)
+                # embed URL (could be None)
+                # embed type (could be None)
+                pinid = pin.id
+                await message.channel.send('pin: ```' + str(pin.id) + '```')
+                if pin.author:
+                    author = pin.author
+                    await message.channel.send("author = " + str(author))
                 if pin.content:
-                    await message.channel.send('content: ```' + pin.content + '```')
-                if pin.clean_content:
-                    #await message.channel.send('clean_content: ```' + pin.clean_content + '```')
-                    #await reddit.subreddit(sub_reddit).submit("{}:{}".format(str.join('Pinddit: ', pin.clean_content), pin.clean_content),selftext="Pinddit{}".format(time.now()))
-                    reddit.subreddit(sub_reddit).submit("Pinddit", selftext="{}".format(pin.clean_content))
-                    print('Posted!\n')
-                for embed in pin.embeds:
-                    await message.channel.send('embed: ```' + str(embed.to_dict()) + '```')
+                    content = pin.content
+                    await message.channel.send("content = " + str(content))
+                if pin.jump_url:
+                    jump_url = pin.jump_url
+                    await message.channel.send("jump_url = " + str(jump_url))
+                if hasattr(pin, "attachments") and len(pin.attachments) > 0:
+                    for attachment in pin.attachments:
+                        await message.channel.send("Attachment = " + str(attachment.url))
+                if hasattr(pin, "embeds") and len(pin.embeds) > 0:
+                    try:
+                        for embed in pin.embeds:
+                            if hasattr(embed, "title"):
+                                embed_title = embed.title
+                                await message.channel.send("Embedded title = " + str(embed_title))
+                            if hasattr(embed, "url"):
+                                embed_url = embed.url
+                                await message.channel.send("Embedded URL = " + str(embed_url))
+                            if hasattr(embed, "type"):
+                                embed_type = embed.type
+                                await message.channel.send("Embedded type = " + str(embed_type))
+                    except:
+                        AttributeError
+
+                # Post each pin to Reddit
+                reddit.subreddit(sub_reddit).submit(str(content)+"{}".format(" "+str(author)), selftext="Discord deep link: {}".format(jump_url))
+                print("Submitted pin with ID = ", pinid, " to Reddit")
 
 client.run(TOKEN)
